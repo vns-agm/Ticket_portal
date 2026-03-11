@@ -203,11 +203,7 @@ export default function RaiseIssueModal({ isOpen, onClose, onSubmit, editingIssu
               }`}
             >
               <option value="">Select assignee...</option>
-              <option value="john.doe@example.com">John Doe</option>
-              <option value="jane.smith@example.com">Jane Smith</option>
-              <option value="mike.johnson@example.com">Mike Johnson</option>
-              <option value="sarah.williams@example.com">Sarah Williams</option>
-              <option value="david.brown@example.com">David Brown</option>
+              <option value="Agam Srivastava">Agam Srivastava</option>
             </select>
             {errors.assignedTo && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">
