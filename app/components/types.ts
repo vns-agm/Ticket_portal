@@ -1,5 +1,6 @@
 export interface Comment {
   id: string;
+  issueId: string;
   text: string;
   createdAt: string;
   createdBy?: string;

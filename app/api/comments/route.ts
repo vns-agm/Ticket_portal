@@ -40,11 +40,6 @@ function writeComments(comments: Comment[]): void {
   }
 }
 
-// Extended Comment interface with issueId
-interface CommentWithIssueId extends Comment {
-  issueId: string;
-}
-
 // GET - Fetch all comments for a specific issue or all comments
 export async function GET(request: NextRequest) {
   try {
@@ -56,7 +51,7 @@ export async function GET(request: NextRequest) {
     if (issueId) {
       // Filter comments by issueId
       const issueComments = allComments.filter(
-        (comment: CommentWithIssueId) => comment.issueId === issueId
+        (comment) => comment.issueId === issueId
       );
       return NextResponse.json(
         { success: true, data: issueComments },
@@ -100,7 +95,7 @@ export async function POST(request: NextRequest) {
     const comments = readComments();
 
     // Create new comment
-    const newComment: CommentWithIssueId = {
+    const newComment: Comment = {
       id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       issueId,
       text: text.trim(),
