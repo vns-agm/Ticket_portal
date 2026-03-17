@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Issue } from '@/app/components/types';
 import fs from 'fs';
-import path from 'path';
+import { ensureDataDirectory, getDataFilePath } from '@/app/lib/data-path';
 
-// File path for storing issues
-const dataFilePath = path.join(process.cwd(), 'data', 'issues.json');
+const dataFilePath = getDataFilePath('issues.json');
 
-// Ensure data directory exists
-function ensureDataDirectory() {
-  const dataDir = path.join(process.cwd(), 'data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-}
-
-// Read issues from file
 function readIssues(): Issue[] {
   ensureDataDirectory();
   if (!fs.existsSync(dataFilePath)) {
@@ -29,7 +19,6 @@ function readIssues(): Issue[] {
   }
 }
 
-// Write issues to file
 function writeIssues(issues: Issue[]): void {
   ensureDataDirectory();
   try {

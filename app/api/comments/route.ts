@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Comment } from '@/app/components/types';
 import fs from 'fs';
-import path from 'path';
+import { ensureDataDirectory, getDataFilePath } from '@/app/lib/data-path';
 
-// File path for storing comments
-const dataFilePath = path.join(process.cwd(), 'data', 'comments.json');
+const dataFilePath = getDataFilePath('comments.json');
 
-// Ensure data directory exists
-function ensureDataDirectory() {
-  const dataDir = path.join(process.cwd(), 'data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-}
-
-// Read comments from file
 function readComments(): Comment[] {
   ensureDataDirectory();
   if (!fs.existsSync(dataFilePath)) {
@@ -29,7 +19,6 @@ function readComments(): Comment[] {
   }
 }
 
-// Write comments to file
 function writeComments(comments: Comment[]): void {
   ensureDataDirectory();
   try {
