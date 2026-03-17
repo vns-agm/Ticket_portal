@@ -1,33 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Issue } from '@/app/components/types';
-import fs from 'fs';
-import { ensureDataDirectory, getDataFilePath } from '@/app/lib/data-path';
-
-const dataFilePath = getDataFilePath('issues.json');
-
-function readIssues(): Issue[] {
-  ensureDataDirectory();
-  if (!fs.existsSync(dataFilePath)) {
-    return [];
-  }
-  try {
-    const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(fileData);
-  } catch (error) {
-    console.error('Error reading issues:', error);
-    return [];
-  }
-}
-
-function writeIssues(issues: Issue[]): void {
-  ensureDataDirectory();
-  try {
-    fs.writeFileSync(dataFilePath, JSON.stringify(issues, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Error writing issues:', error);
-    throw error;
-  }
-}
+import { readJson, writeJson } from '@/app/lib/store';
 
 // GET - Fetch a single issue by unique key (id)
 export async function GET(
@@ -45,7 +18,7 @@ export async function GET(
       );
     }
 
-    const issues = readIssues();
+    const issues = await readJson<Issue[]>('issues', []);
     const issue = issues.find((i) => i.id === id);
 
     if (!issue) {
@@ -140,7 +113,7 @@ export async function PUT(
     }
 
     // Read existing issues
-    const issues = readIssues();
+    const issues = await readJson<Issue[]>('issues', []);
     const issueIndex = issues.findIndex((i) => i.id === id);
 
     if (issueIndex === -1) {
@@ -169,8 +142,7 @@ export async function PUT(
 
     issues[issueIndex] = updatedIssue;
 
-    // Write back to file
-    writeIssues(issues);
+    await writeJson('issues', issues);
 
     console.log(`Issue updated successfully: ${id}`);
 
@@ -211,7 +183,7 @@ export async function DELETE(
     }
 
     // Read existing issues
-    const issues = readIssues();
+    const issues = await readJson<Issue[]>('issues', []);
     const issueIndex = issues.findIndex((i) => i.id === id);
 
     if (issueIndex === -1) {
@@ -231,8 +203,7 @@ export async function DELETE(
     // Remove issue from array
     issues.splice(issueIndex, 1);
 
-    // Write back to file
-    writeIssues(issues);
+    await writeJson('issues', issues);
 
     console.log(`Issue deleted successfully: ${id}`);
 

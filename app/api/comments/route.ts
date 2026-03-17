@@ -1,33 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Comment } from '@/app/components/types';
-import fs from 'fs';
-import { ensureDataDirectory, getDataFilePath } from '@/app/lib/data-path';
-
-const dataFilePath = getDataFilePath('comments.json');
-
-function readComments(): Comment[] {
-  ensureDataDirectory();
-  if (!fs.existsSync(dataFilePath)) {
-    return [];
-  }
-  try {
-    const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(fileData);
-  } catch (error) {
-    console.error('Error reading comments:', error);
-    return [];
-  }
-}
-
-function writeComments(comments: Comment[]): void {
-  ensureDataDirectory();
-  try {
-    fs.writeFileSync(dataFilePath, JSON.stringify(comments, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Error writing comments:', error);
-    throw error;
-  }
-}
+import { readJson, writeJson } from '@/app/lib/store';
 
 // GET - Fetch all comments for a specific issue or all comments
 export async function GET(request: NextRequest) {
@@ -35,7 +8,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const issueId = searchParams.get('issueId');
 
-    const allComments = readComments();
+    const allComments = await readJson<Comment[]>('comments', []);
 
     if (issueId) {
       // Filter comments by issueId
@@ -81,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Read existing comments
-    const comments = readComments();
+    const comments = await readJson<Comment[]>('comments', []);
 
     // Create new comment
     const newComment: Comment = {
@@ -95,8 +68,7 @@ export async function POST(request: NextRequest) {
     // Add to comments array
     comments.push(newComment);
 
-    // Write back to file
-    writeComments(comments);
+    await writeJson('comments', comments);
 
     console.log(`Comment created: ${newComment.id} for issue: ${issueId}`);
 

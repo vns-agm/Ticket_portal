@@ -1,38 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Issue } from '@/app/components/types';
-import fs from 'fs';
-import { ensureDataDirectory, getDataFilePath } from '@/app/lib/data-path';
-
-const dataFilePath = getDataFilePath('issues.json');
-
-function readIssues(): Issue[] {
-  ensureDataDirectory();
-  if (!fs.existsSync(dataFilePath)) {
-    return [];
-  }
-  try {
-    const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    return JSON.parse(fileData);
-  } catch (error) {
-    console.error('Error reading issues:', error);
-    return [];
-  }
-}
-
-function writeIssues(issues: Issue[]): void {
-  ensureDataDirectory();
-  try {
-    fs.writeFileSync(dataFilePath, JSON.stringify(issues, null, 2), 'utf-8');
-  } catch (error) {
-    console.error('Error writing issues:', error);
-    throw error;
-  }
-}
+import { readJson, writeJson } from '@/app/lib/store';
 
 // GET - Fetch all issues
 export async function GET() {
   try {
-    const issues = readIssues();
+    const issues = await readJson<Issue[]>('issues', []);
     return NextResponse.json({ success: true, data: issues }, { status: 200 });
   } catch (error) {
     console.error('Error fetching issues:', error);
@@ -88,8 +61,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Read existing issues
-    const issues = readIssues();
+    const issues = await readJson<Issue[]>('issues', []);
 
     // Create new issue
     // Comments are stored separately via /api/comments endpoint
@@ -103,11 +75,8 @@ export async function POST(request: NextRequest) {
       status: 'open',
     };
 
-    // Add to issues array
     issues.push(newIssue);
-
-    // Write back to file
-    writeIssues(issues);
+    await writeJson('issues', issues);
 
     return NextResponse.json(
       { success: true, data: newIssue },
