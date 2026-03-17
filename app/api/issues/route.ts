@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'crypto';
 import { Issue } from '@/app/components/types';
 import { readJson, writeJson } from '@/app/lib/store';
+
+function generateUniqueIssueId(existingIds: Set<string>): string {
+  let id: string;
+  let attempts = 0;
+  const maxAttempts = 10;
+  do {
+    id = `issue-${randomUUID()}`;
+    if (++attempts >= maxAttempts) break;
+  } while (existingIds.has(id));
+  return id;
+}
 
 // GET - Fetch all issues
 export async function GET() {
@@ -62,11 +74,11 @@ export async function POST(request: NextRequest) {
     }
 
     const issues = await readJson<Issue[]>('issues', []);
+    const existingIds = new Set(issues.map((i) => i.id));
 
-    // Create new issue
-    // Comments are stored separately via /api/comments endpoint
+    // Create new issue with guaranteed unique id
     const newIssue: Issue = {
-      id: `issue-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: generateUniqueIssueId(existingIds),
       assignedTo,
       dueDate,
       priority,
